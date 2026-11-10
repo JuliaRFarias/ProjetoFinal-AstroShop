@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AstroShop | Minhas compras</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="navbar container">
+      <a class="logo" href="home.html">✦ AstroShop</a>
+      <div class="nav-links">
+        <a href="home.html">Início</a>
+        <a href="produtos.html">Produtos</a>
+        <a href="carrinho.html">Carrinho</a>
+        <a href="compras.html">Minhas compras</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container secao">
+    <h1 class="titulo-secao">Histórico de compras</h1>
+    <p class="texto-secundario">Consulte seus pedidos realizados no AstroShop.</p>
+
+    <p id="mensagem-compras" class="mensagem" aria-live="polite"></p>
+    <section id="lista-compras" class="lista-itens">
+      <p>Carregando histórico...</p>
+    </section>
+  </main>
+
+  <footer class="rodape">© 2026 AstroShop</footer>
+
+  <script src="../index.js"></script>
+  <script>
+    const lista = document.querySelector("#lista-compras");
+    const mensagem = document.querySelector("#mensagem-compras");
+
+    async function carregarCompras() {
+      if (!AstroShop.obterToken()) {
+        lista.innerHTML = `
+          <div class="vazio">
+            <p>Entre para consultar seu histórico.</p>
+            <a class="botao" href="../formularios/login.html">Fazer login</a>
+          </div>`;
+        return;
+      }
+
+      try {
+        const compras = await AstroShop.requisicaoAPI("/api/compras");
+        lista.innerHTML = "";
+
+        if (!compras.length) {
+          lista.innerHTML =
+            '<div class="vazio">Você ainda não realizou compras.</div>';
+          return;
+        }
+
+        compras.forEach(compra => {
+          const artigo = document.createElement("article");
+          artigo.className = "painel";
+
+          const data = compra.data_compra
+            ? new Date(compra.data_compra).toLocaleDateString("pt-BR")
+            : "Data indisponível";
+
+          artigo.innerHTML = `
+            <h2>Pedido #${Number(compra.id_compra)}</h2>
+            <p>Data: ${AstroShop.escaparHTML(data)}</p>
+            <p>Status: ${AstroShop.escaparHTML(compra.status)}</p>
+            <p class="total">${AstroShop.formatarPreco(compra.valor_total)}</p>
+            <button class="botao botao-secundario"
+              data-detalhes="${Number(compra.id_compra)}">
+              Ver detalhes
+            </button>
+            <button class="botao botao-secundario"
+              data-nota="${Number(compra.id_compra)}">
+              Consultar nota fiscal
+            </button>
+            <div data-resultado="${Number(compra.id_compra)}"></div>
+          `;
+
+          lista.appendChild(artigo);
+        });
+      } catch (erro) {
+        mensagem.textContent = erro.message;
+        mensagem.className = "mensagem erro";
+      }
+    }
+
+    lista.addEventListener("click", async event => {
+      const detalhes = event.target.closest("[data-detalhes]");
+      const nota = event.target.closest("[data-nota]");
+
+      if (!detalhes && !nota) return;
+
+      const id = Number(
+        detalhes ? detalhes.dataset.detalhes : nota.dataset.nota
+      );
+
+      const resultado = lista.querySelector(`[data-resultado="${id}"]`);
+
+      try {
+        if (detalhes) {
+          const compra = await AstroShop.requisicaoAPI(`/api/compras/${id}`);
+
+          resultado.innerHTML = `
+            <h3>Itens do pedido</h3>
+            ${compra.itens.map(item => `
+              <p>${AstroShop.escaparHTML(item.produto)}
+                — ${Number(item.quantidade)} unidade(s)
+                — ${AstroShop.formatarPreco(item.subtotal)}</p>
+            `).join("")}
+          `;
+        } else {
+          const fiscal = await AstroShop.requisicaoAPI(
+            `/api/compras/${id}/nota-fiscal`
+          );
+
+          resultado.textContent =
+            `Nota fiscal: ${fiscal.numero || fiscal.id_nota_fiscal || "Registrada"}`;
+        }
+      } catch (erro) {
+        resultado.textContent = erro.message;
+      }
+    });
+
+    carregarCompras();
+  </script>
+</body>
+</html>

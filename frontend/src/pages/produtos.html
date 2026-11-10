@@ -1,0 +1,46 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AstroShop | Produtos</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="navbar container">
+      <a class="logo" href="home.html">✦ AstroShop</a>
+      <div class="nav-links">
+        <a href="home.html">Início</a>
+        <a href="produtos.html">Produtos</a>
+        <a href="carrinho.html">Carrinho</a>
+        <a href="compras.html">Minhas compras</a>
+        <a href="../formularios/login.html">Login</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container secao">
+    <h1 class="titulo-secao">Nosso catálogo</h1>
+    <p class="texto-secundario">Encontre seu próximo instrumento de descoberta.</p>
+
+    <div class="campo" style="max-width: 450px; margin-top: 25px;">
+      <label for="busca">Buscar produto</label>
+      <input id="busca" type="search" placeholder="Ex.: telescópio, pêndulo...">
+    </div>
+
+    <p id="mensagem-produtos" class="mensagem" aria-live="polite"></p>
+    <section id="lista-produtos" class="grade-produtos">
+      <p class="texto-secundario">Carregando catálogo...</p>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <div class="container">© 2026 AstroShop</div>
+  </footer>
+
+  <script src="../index.js"></script>
+  <script src="produtos.js"></script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AstroShop | Carrinho</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="navbar container">
+      <a class="logo" href="home.html">✦ AstroShop</a>
+      <div class="nav-links">
+        <a href="home.html">Início</a>
+        <a href="produtos.html">Produtos</a>
+        <a href="carrinho.html">Carrinho</a>
+        <a href="compras.html">Minhas compras</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container secao">
+    <h1 class="titulo-secao">Seu carrinho</h1>
+    <p class="texto-secundario">Confira os itens antes de finalizar o pedido.</p>
+
+    <p id="mensagem-carrinho" class="mensagem" aria-live="polite"></p>
+    <section id="itens-carrinho" class="lista-itens">
+      <p class="texto-secundario">Carregando carrinho...</p>
+    </section>
+
+    <section class="painel">
+      <p>Total do pedido</p>
+      <p id="total-carrinho" class="total">R$ 0,00</p>
+      <div class="hero-acoes">
+        <button id="finalizar-compra" class="botao" type="button">
+          Finalizar compra
+        </button>
+        <button id="limpar-carrinho" class="botao botao-perigo" type="button">
+          Esvaziar carrinho
+        </button>
+        <a class="botao botao-secundario" href="produtos.html">
+          Continuar comprando
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape">© 2026 AstroShop</footer>
+
+  <script src="../index.js"></script>
+  <script src="carrinho.js"></script>
+</body>
+</html>

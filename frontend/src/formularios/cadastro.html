@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AstroShop | Cadastro</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="pagina-formulario">
+    <section class="card-formulario">
+      <a class="logo" href="../index.html">✦ AstroShop</a>
+      <h1>Crie sua conta</h1>
+      <p>Comece sua jornada pelo universo da ciência.</p>
+
+      <form id="form-cadastro" class="formulario">
+        <div class="campo">
+          <label for="nome">Nome completo</label>
+          <input id="nome" name="nome" type="text"
+            autocomplete="name" maxlength="120" required>
+        </div>
+
+        <div class="campo">
+          <label for="email">E-mail</label>
+          <input id="email" name="email" type="email"
+            autocomplete="email" maxlength="150" required>
+        </div>
+
+        <div class="campo">
+          <label for="telefone">Telefone (opcional)</label>
+          <input id="telefone" name="telefone" type="tel"
+            autocomplete="tel" maxlength="20">
+        </div>
+
+        <div class="campo">
+          <label for="senha">Senha</label>
+          <input id="senha" name="senha" type="password"
+            autocomplete="new-password" minlength="8" required>
+        </div>
+
+        <div class="campo">
+          <label for="confirmar-senha">Confirmar senha</label>
+          <input id="confirmar-senha" name="confirmar-senha"
+            type="password" autocomplete="new-password"
+            minlength="8" required>
+        </div>
+
+        <button class="botao" type="submit">Criar conta</button>
+        <p id="mensagem-cadastro" class="mensagem" aria-live="polite"></p>
+      </form>
+
+      <p>Já possui conta?
+        <a class="link-formulario" href="login.html">Fazer login</a>
+      </p>
+
+      <a class="voltar" href="../pages/home.html">← Voltar à loja</a>
+    </section>
+  </main>
+
+  <script src="../index.js"></script>
+  <script src="cadastro.js"></script>
+</body>
+</html>

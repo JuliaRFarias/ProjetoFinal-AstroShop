@@ -1,0 +1,124 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AstroShop | Início</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="navbar container">
+      <a class="logo" href="./home.html">✦ AstroShop</a>
+      <div class="nav-links">
+        <a href="./home.html">Início</a>
+        <a href="./produtos.html">Produtos</a>
+        <a href="./carrinho.html">Carrinho</a>
+        <a href="./compras.html">Minhas compras</a>
+        <a href="../formularios/login.html" id="link-login">Entrar</a>
+        <button class="botao botao-secundario" id="botao-sair" hidden>Sair</button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-conteudo">
+        <p>CIÊNCIA • ASTRONOMIA • DESCOBERTA</p>
+        <h1>O universo está <span>ao seu alcance.</span></h1>
+        <p>
+          Descubra telescópios, pêndulos e instrumentos científicos
+          para transformar curiosidade em conhecimento.
+        </p>
+        <div class="hero-acoes">
+          <a class="botao" href="./produtos.html">Explorar produtos</a>
+          <a class="botao botao-secundario" href="#categorias">Ver categorias</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="secao container">
+      <h2 class="titulo-secao">Destaques do universo</h2>
+      <p class="texto-secundario">Conheça os equipamentos selecionados para sua próxima descoberta.</p>
+
+      <div class="carrossel" id="carrossel">
+        <article class="slide ativo"
+          style="--imagem-slide: url('https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&w=1400&q=80')">
+          <div class="slide-conteudo">
+            <p>A ASTRONOMIA COMEÇA AQUI</p>
+            <h3>Olhe para as estrelas.</h3>
+            <p>Encontre equipamentos para começar sua jornada pelo céu.</p>
+            <a class="botao" href="produtos.html">Ver telescópios</a>
+          </div>
+        </article>
+
+        <article class="slide"
+          style="--imagem-slide: url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?auto=format&fit=crop&w=1400&q=80')">
+          <div class="slide-conteudo">
+            <p>FÍSICA EM MOVIMENTO</p>
+            <h3>Aprenda experimentando.</h3>
+            <p>Explore instrumentos que tornam a ciência visível.</p>
+            <a class="botao" href="./produtos.html">Explorar catálogo</a>
+          </div>
+        </article>
+
+        <article class="slide"
+          style="--imagem-slide: url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1400&q=80')">
+          <div class="slide-conteudo">
+            <p>EXPLORE SEM LIMITES</p>
+            <h3>Curiosidade move o mundo.</h3>
+            <p>Descubra gadgets científicos e acessórios de observação.</p>
+            <a class="botao" href="./produtos.html">Conhecer produtos</a>
+          </div>
+        </article>
+
+        <div class="carrossel-controles">
+          <button class="botao botao-secundario" id="slide-anterior" type="button">← Anterior</button>
+          <span id="slide-indicador" aria-live="polite">1 / 3</span>
+          <button class="botao botao-secundario" id="slide-proximo" type="button">Próximo →</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="secao container" id="categorias">
+      <h2 class="titulo-secao">Explore por categoria</h2>
+      <div class="categorias">
+        <a class="categoria-card" href="./produtos.html">
+          <div class="icone">🔭</div>
+          <h3>Telescópios</h3>
+          <p class="texto-secundario">Observe a Lua, os planetas e as estrelas.</p>
+        </a>
+        <a class="categoria-card" href="./produtos.html">
+          <div class="icone">⚙️</div>
+          <h3>Pêndulos</h3>
+          <p class="texto-secundario">Descubra os princípios da mecânica clássica.</p>
+        </a>
+        <a class="categoria-card" href="./produtos.html">
+          <div class="icone">🧪</div>
+          <h3>Gadgets de física</h3>
+          <p class="texto-secundario">Experimente óptica, movimento e energia.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="secao container">
+      <h2 class="titulo-secao">Produtos em destaque</h2>
+      <div id="produtos-destaque" class="grade-produtos">
+        <p class="texto-secundario">Carregando produtos...</p>
+      </div>
+      <p id="mensagem-home" class="mensagem" aria-live="polite"></p>
+      <p><a class="botao botao-secundario" href="./produtos.html">Ver catálogo completo</a></p>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <div class="container">
+      <p>© 2026 AstroShop — Ciência para explorar o universo.</p>
+    </div>
+  </footer>
+
+  <script src="../index.js"></script>
+  <script src="./home.js"></script>
+</body>
+</html>

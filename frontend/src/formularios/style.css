@@ -1,0 +1,63 @@
+@import url("../style.css");
+
+.pagina-formulario {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 16px;
+  background:
+    radial-gradient(circle at top right, #65B8F4 0, transparent 35%),
+    #F4F8FF;
+}
+
+.card-formulario {
+  width: min(450px, 100%);
+  padding: 32px;
+  background: #FFFFFF;
+  border: 1px solid #D5E3F3;
+  border-top: 5px solid #FFD43B;
+  border-radius: 18px;
+  box-shadow: 0 12px 35px rgba(16, 42, 86, 0.15);
+  animation: surgir 0.5s ease;
+}
+
+.card-formulario .logo {
+  display: block;
+  margin-bottom: 15px;
+  color: #102A56;
+  text-align: center;
+}
+
+.card-formulario h1 {
+  margin: 0 0 8px;
+  color: #102A56;
+  text-align: center;
+}
+
+.card-formulario > p {
+  margin-bottom: 25px;
+  color: #526783;
+  text-align: center;
+}
+
+.link-formulario {
+  color: #245DA8;
+  font-weight: 700;
+}
+
+.link-formulario:hover {
+  color: #102A56;
+  text-decoration: underline;
+}
+
+.card-formulario .botao {
+  width: 100%;
+}
+
+.voltar {
+  display: block;
+  margin-top: 22px;
+  text-align: center;
+  color: #526783;
+}
