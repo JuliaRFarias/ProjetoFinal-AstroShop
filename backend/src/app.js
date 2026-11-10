@@ -1,9 +1,10 @@
-const express = require("express");
-const cors = require("cors");
+// const express = require("express");
+// const cors = require("cors");
+import express from "express"
+import cors from "cors"
 
 const app = express();
 
-// Importar rotas
 const authRoutes = require("./routes/authRoutes");
 
 app.use(cors());

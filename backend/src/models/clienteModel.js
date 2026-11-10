@@ -1,7 +1,8 @@
-const db = require('../config/db');
 
-async function buscarPorEmail(email) {
-    const resultado = await db.query(
+import db from "../config/db";
+
+export async function buscarPorEmail(email) {
+    const [resultado] = await db.query(
         `
         SELECT
             c.id_cliente,
@@ -22,8 +23,8 @@ async function buscarPorEmail(email) {
     return resultado[0] || null;
 }
 
-async function buscarPorId(id) {
-    const resultado = await db.query(
+export async function buscarPorId(id) {
+    const [resultado] = await db.query(
         `
         SELECT
             c.id_cliente,
@@ -49,8 +50,8 @@ async function buscarPorId(id) {
     return resultado[0] || null;
 }
 
-async function listar() {
-    return await db.query(
+export async function listar() {
+    const [resultado] = await db.query(
         `
         SELECT
             c.id_cliente,
@@ -63,15 +64,17 @@ async function listar() {
         ORDER BY c.nome
         `
     );
+
+    return resultado;
 }
 
-async function criar(dados) {
+export async function criar(dados) {
     const conexao = await db.getConnection();
 
     try {
         await conexao.beginTransaction();
 
-        const cliente = await conexao.query(
+        const [cliente] = await conexao.query(
             `
             INSERT INTO cliente
             (
@@ -134,6 +137,7 @@ async function criar(dados) {
             ]
         );
 
+        
         await conexao.query(
             `
             INSERT INTO carrinho_de_compra
@@ -152,17 +156,19 @@ async function criar(dados) {
     } catch (erro) {
         await conexao.rollback();
         throw erro;
+
     } finally {
         conexao.release();
     }
 }
 
-async function atualizar(id, dados) {
+export async function atualizar(id, dados) {
     const conexao = await db.getConnection();
 
     try {
         await conexao.beginTransaction();
 
+       
         await conexao.query(
             `
             UPDATE cliente
@@ -178,6 +184,7 @@ async function atualizar(id, dados) {
             ]
         );
 
+    
         await conexao.query(
             `
             UPDATE cadastro
@@ -208,26 +215,20 @@ async function atualizar(id, dados) {
     } catch (erro) {
         await conexao.rollback();
         throw erro;
+
     } finally {
         conexao.release();
     }
 }
 
-async function desativar(id) {
-    return await db.query(
+export async function desativar(id) {
+    const [resultado] = await db.query(
         `
         DELETE FROM cliente
         WHERE id_cliente = ?
         `,
         [id]
     );
-}
 
-module.exports = {
-    buscarPorEmail,
-    buscarPorId,
-    listar,
-    criar,
-    atualizar,
-    desativar
-};
+    return resultado;
+}
