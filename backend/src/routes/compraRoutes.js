@@ -1,15 +1,13 @@
+import { Router } from "express";
 
-const express = require("express");
-const controller = require("../controllers/compraController");
-const autenticar = require("../middlewares/authMiddleware");
+import * as controller from "../controllers/compraController.js";
+import { exigirLogin } from "../middlewares/authMiddleware.js";
 
-const router = express.Router();
+const router = Router();
 
-router.use(autenticar);
+router.use(exigirLogin);
 
 router.get("/", controller.listar);
-router.get("/:id/nota-fiscal", controller.notaFiscal);
-router.get("/:id", controller.buscar);
-router.post("/", controller.finalizar);
+router.post("/finalizar", controller.finalizar);
 
-module.exports = router;
+export default router;

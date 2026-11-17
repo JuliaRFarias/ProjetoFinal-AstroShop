@@ -1,16 +1,15 @@
+import { Router } from "express";
 
-const express = require("express");
-const controller = require("../controllers/carrinhoController");
-const autenticar = require("../middlewares/authMiddleware");
+import * as controller from "../controllers/carrinhoController.js";
+import { exigirLogin } from "../middlewares/authMiddleware.js";
 
-const router = express.Router();
+const router = Router();
 
-router.use(autenticar);
+router.use(exigirLogin);
 
 router.get("/", controller.listar);
-router.post("/itens", controller.adicionar);
-router.put("/itens/:idProduto", controller.alterar);
-router.delete("/itens/:idProduto", controller.remover);
-router.delete("/", controller.excluir);
+router.post("/", controller.adicionar);
+router.put("/:itemId", controller.alterar);
+router.delete("/:itemId", controller.remover);
 
-module.exports = router;
+export default router;

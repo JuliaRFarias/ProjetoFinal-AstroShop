@@ -1,4 +1,3 @@
-
 const compraModel = require("../models/compraModel");
 const notaFiscalModel = require("../models/notaFiscalModel");
 

@@ -10,11 +10,14 @@
 <body>
   <main class="pagina-formulario">
     <section class="card-formulario">
-      <a class="logo" href="../index.html">✦ AstroShop</a>
+
+      <a class="logo" href="../pages/home.html">✦ AstroShop</a>
+
       <h1>Crie sua conta</h1>
       <p>Comece sua jornada pelo universo da ciência.</p>
 
       <form id="form-cadastro" class="formulario">
+
         <div class="campo">
           <label for="nome">Nome completo</label>
           <input id="nome" name="nome" type="text"
@@ -47,18 +50,25 @@
         </div>
 
         <button class="botao" type="submit">Criar conta</button>
-        <p id="mensagem-cadastro" class="mensagem" aria-live="polite"></p>
+
+        <p id="mensagem-cadastro" class="mensagem"
+          aria-live="polite"></p>
       </form>
 
-      <p>Já possui conta?
-        <a class="link-formulario" href="login.html">Fazer login</a>
+      <p>
+        Já possui conta?
+        <a class="link-formulario" href="./login.html">
+          Fazer login
+        </a>
       </p>
 
-      <a class="voltar" href="../pages/home.html">← Voltar à loja</a>
+      <a class="voltar" href="../pages/home.html">
+        ← Voltar à loja
+      </a>
+
     </section>
   </main>
 
-  <script src="../index.js"></script>
-  <script src="cadastro.js"></script>
-</body>
+ <script src="../index.js"></script>
+<script src="./cadastro.js"></script>
 </html>

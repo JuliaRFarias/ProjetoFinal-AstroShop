@@ -1,13 +1,13 @@
+import { Router } from "express";
 
-const express = require("express");
-const controller = require("../controllers/clienteController");
+import * as controller from "../controllers/clienteController.js";
+import { exigirLogin } from "../middlewares/authMiddleware.js";
 
-const router = express.Router();
+const router = Router();
 
-router.get("/", controller.listar);
-router.get("/:id", controller.buscar);
-router.post("/", controller.criar);
-router.put("/:id", controller.atualizar);
-router.delete("/:id", controller.excluir);
+router.get("/", exigirLogin, controller.listar);
+router.get("/:id", exigirLogin, controller.buscar);
+router.put("/:id", exigirLogin, controller.atualizar);
+router.delete("/:id", exigirLogin, controller.excluir);
 
-module.exports = router;
+export default router;
