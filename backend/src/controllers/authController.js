@@ -1,124 +1,166 @@
-const pool = require("../config/db");
-const clienteModel = require("../models/clienteModel");
 
-async function cadastrar(req, res) {
-  console.log("--> REQUISIÇÃO RECEBIDA NO CADASTRO <--", req.body);
+import bcrypt from "bcryptjs";
+import * as clienteModel from "../models/clienteModel.js";
 
-  try {
-    const { nome, email, telefone, senha } = req.body;
-
-    if (!nome?.trim() || !email?.trim() || !senha || senha.length < 8) {
-      return res.status(400).json({
-        mensagem: "Informe nome, e-mail e senha com pelo menos 8 caracteres."
-      });
-    }
-
-    const emailNormalizado = email.trim().toLowerCase();
-    const existente = await clienteModel.buscarPorEmail(emailNormalizado);
-
-    if (existente) {
-      return res.status(409).json({
-        mensagem: "Este e-mail já está cadastrado."
-      });
-    }
-
-    const conexao = await pool.getConnection();
-
+// CADASTRAR CLIENTE
+export async function cadastrar(req, res) {
     try {
-      await conexao.beginTransaction();
+        const { nome, email, telefone, senha } = req.body;
 
-      const resultado = await conexao.query(
-        `INSERT INTO cliente (nome, email, telefone)
-         VALUES (?, ?, ?)`,
-        [nome.trim(), emailNormalizado, telefone || null]
-      );
+        if (!nome?.trim() || !email?.trim() || !senha) {
+            return res.status(400).json({
+                mensagem: "Preencha todos os campos obrigatórios."
+            });
+        }
 
-      const insertIdBruto = resultado.insertId !== undefined ? resultado.insertId : (Array.isArray(resultado) ? resultado[0]?.insertId : undefined);
-      const idCliente = Number(insertIdBruto);
+        if (senha.length < 8) {
+            return res.status(400).json({
+                mensagem: "A senha deve ter pelo menos 8 caracteres."
+            });
+        }
 
-      if (!idCliente || isNaN(idCliente)) {
-        throw new Error(`Falha ao obter ID do cliente inserido.`);
-      }
+        const emailNormalizado = email.trim().toLowerCase();
 
-      // Salva a senha diretamente na coluna senha_hash
-      await conexao.query(
-        `INSERT INTO login (id_cliente, email_login, senha_hash)
-         VALUES (?, ?, ?)`,
-        [idCliente, emailNormalizado, senha]
-      );
+        const clienteExistente =
+            await clienteModel.buscarPorEmail(emailNormalizado);
 
-      await conexao.commit();
+        if (clienteExistente) {
+            return res.status(409).json({
+                mensagem: "Este e-mail já está cadastrado."
+            });
+        }
 
-      res.status(201).json({
-        mensagem: "Cadastro realizado com sucesso!",
-        id_cliente: idCliente
-      });
+        const senhaHash = await bcrypt.hash(senha, 10);
+
+        await clienteModel.criar({
+            nome: nome.trim(),
+            email: emailNormalizado,
+            telefone: telefone?.trim() || null,
+            senhaHash
+        });
+
+        return res.status(201).json({
+            mensagem: "Cadastro realizado com sucesso!"
+        });
+
     } catch (erro) {
-      await conexao.rollback();
-      throw erro;
-    } finally {
-      conexao.release();
-    }
-  } catch (erro) {
-    if (erro.code === "ER_DUP_ENTRY") {
-      return res.status(409).json({ mensagem: "E-mail já cadastrado." });
-    }
+        console.error("Erro ao cadastrar:", erro);
 
-    console.error("================ ERRO NO CADASTRO ================");
-    console.error(erro);
-    console.error("==================================================");
-
-    res.status(500).json({ mensagem: "Erro ao realizar cadastro." });
-  }
+        return res.status(500).json({
+            mensagem: "Erro interno ao realizar cadastro."
+        });
+    }
 }
 
-async function login(req, res) {
-  try {
-    const { email, senha } = req.body;
+// REALIZAR LOGIN
+export async function login(req, res) {
+    try {
+        const { email, senha } = req.body;
 
-    if (!email?.trim() || !senha) {
-      return res.status(400).json({
-        mensagem: "Informe e-mail e senha."
-      });
+        if (!email?.trim() || !senha) {
+            return res.status(400).json({
+                mensagem: "Informe seu e-mail e sua senha."
+            });
+        }
+
+        const emailNormalizado = email.trim().toLowerCase();
+
+        const usuario =
+            await clienteModel.buscarPorEmail(emailNormalizado);
+
+        if (!usuario) {
+            return res.status(401).json({
+                mensagem: "E-mail ou senha incorretos."
+            });
+        }
+
+        const senhaCorreta = await bcrypt.compare(
+            senha,
+            usuario.senha_hash
+        );
+
+        if (!senhaCorreta) {
+            return res.status(401).json({
+                mensagem: "E-mail ou senha incorretos."
+            });
+        }
+
+        // Cria uma nova sessão após o login.
+        req.session.regenerate((erro) => {
+            if (erro) {
+                console.error("Erro ao criar sessão:", erro);
+
+                return res.status(500).json({
+                    mensagem: "Não foi possível iniciar sua sessão."
+                });
+            }
+
+            req.session.usuario = {
+                id_cliente: usuario.id_cliente,
+                nome: usuario.nome,
+                email: usuario.email
+            };
+
+            // Salva a sessão antes de responder ao navegador.
+            req.session.save((erroSalvar) => {
+                if (erroSalvar) {
+                    console.error("Erro ao salvar sessão:", erroSalvar);
+
+                    return res.status(500).json({
+                        mensagem: "Não foi possível salvar sua sessão."
+                    });
+                }
+
+                return res.status(200).json({
+                    mensagem: "Login realizado com sucesso!",
+                    usuario: req.session.usuario
+                });
+            });
+        });
+
+    } catch (erro) {
+        console.error("Erro ao realizar login:", erro);
+
+        return res.status(500).json({
+            mensagem: "Erro interno ao realizar login."
+        });
+    }
+}
+
+// VERIFICAR SE ESTÁ LOGADO
+export function me(req, res) {
+    if (!req.session || !req.session.usuario) {
+        return res.status(401).json({
+            mensagem: "Usuário não autenticado."
+        });
     }
 
-    const rows = await pool.query(
-      `SELECT l.id_cliente, l.email_login, l.senha_hash, c.nome
-       FROM login l
-       INNER JOIN cliente c ON c.id_cliente = l.id_cliente
-       WHERE l.email_login = ?`,
-      [email.trim().toLowerCase()]
-    );
-
-    if (!rows.length) {
-      return res.status(401).json({
-        mensagem: "E-mail ou senha inválidos."
-      });
-    }
-
-    const usuario = rows[0];
-
-    // Comparação simples de texto (senha enviada vs senha salva no banco)
-    if (senha !== usuario.senha_hash) {
-      return res.status(401).json({
-        mensagem: "E-mail ou senha inválidos."
-      });
-    }
-
-    res.json({
-      mensagem: "Login realizado com sucesso.",
-      usuario: {
-        id_cliente: usuario.id_cliente,
-        nome: usuario.nome,
-        email: usuario.email_login
-      }
+    return res.status(200).json({
+        usuario: req.session.usuario
     });
-  } catch (erro) {
-    console.error("================ ERRO NO LOGIN ================");
-    console.error(erro);
-    console.error("===============================================");
-    res.status(500).json({ mensagem: "Erro ao realizar login." });
-  }
 }
 
-module.exports = { cadastrar, login };
+// ENCERRAR SESSÃO
+export function logout(req, res) {
+    if (!req.session) {
+        return res.status(200).json({
+            mensagem: "Sessão encerrada."
+        });
+    }
+
+    req.session.destroy((erro) => {
+        if (erro) {
+            console.error("Erro ao encerrar sessão:", erro);
+
+            return res.status(500).json({
+                mensagem: "Erro ao sair da conta."
+            });
+        }
+
+        res.clearCookie("astroshop.sid");
+
+        return res.status(200).json({
+            mensagem: "Logout realizado com sucesso!"
+        });
+    });
+}

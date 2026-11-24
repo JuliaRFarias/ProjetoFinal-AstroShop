@@ -1,5 +1,5 @@
 
-import db from "../config/db";
+import db from "../config/db.js";
 
 export async function buscarPorEmail(email) {
     const [resultado] = await db.query(
@@ -7,14 +7,17 @@ export async function buscarPorEmail(email) {
         SELECT
             c.id_cliente,
             c.nome,
+            c.cpf,
             c.email,
             c.telefone,
+            c.endereco,
             l.id_login,
             l.senha_hash
         FROM cliente c
         INNER JOIN login l
             ON c.id_cliente = l.id_cliente
         WHERE c.email = ?
+        AND l.ativo = TRUE
         LIMIT 1
         `,
         [email]
@@ -29,20 +32,17 @@ export async function buscarPorId(id) {
         SELECT
             c.id_cliente,
             c.nome,
+            c.cpf,
             c.email,
             c.telefone,
-            ca.cpf,
-            ca.cep,
-            ca.rua,
-            ca.numero,
-            ca.complemento,
-            ca.bairro,
-            ca.cidade,
-            ca.estado
+            c.endereco,
+            c.data_cadastro,
+            ca.status AS status_cadastro
         FROM cliente c
         LEFT JOIN cadastro ca
             ON c.id_cliente = ca.id_cliente
         WHERE c.id_cliente = ?
+        LIMIT 1
         `,
         [id]
     );
@@ -56,11 +56,14 @@ export async function listar() {
         SELECT
             c.id_cliente,
             c.nome,
+            c.cpf,
             c.email,
-            c.telefone
+            c.telefone,
+            c.endereco
         FROM cliente c
         INNER JOIN login l
             ON c.id_cliente = l.id_cliente
+        WHERE l.ativo = TRUE
         ORDER BY c.nome
         `
     );
@@ -74,73 +77,64 @@ export async function criar(dados) {
     try {
         await conexao.beginTransaction();
 
+        // 1. Criar cliente
         const [cliente] = await conexao.query(
             `
             INSERT INTO cliente
             (
                 nome,
+                cpf,
                 email,
-                telefone
+                telefone,
+                endereco
             )
-            VALUES (?, ?, ?)
+            VALUES (?, ?, ?, ?, ?)
             `,
             [
                 dados.nome,
+                dados.cpf || null,
                 dados.email,
-                dados.telefone || null
+                dados.telefone || null,
+                dados.endereco || null
             ]
         );
 
         const idCliente = Number(cliente.insertId);
 
+        // 2. Criar cadastro
         await conexao.query(
             `
             INSERT INTO cadastro
             (
-                id_cliente,
-                cpf,
-                cep,
-                rua,
-                numero,
-                complemento,
-                bairro,
-                cidade,
-                estado
+                id_cliente
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?)
             `,
-            [
-                idCliente,
-                dados.cpf || null,
-                dados.cep || null,
-                dados.rua || null,
-                dados.numero || null,
-                dados.complemento || null,
-                dados.bairro || null,
-                dados.cidade || null,
-                dados.estado || null
-            ]
+            [idCliente]
         );
 
+        // 3. Criar login
         await conexao.query(
             `
             INSERT INTO login
             (
                 id_cliente,
+                email_login,
                 senha_hash
             )
-            VALUES (?, ?)
+            VALUES (?, ?, ?)
             `,
             [
                 idCliente,
+                dados.email,
                 dados.senhaHash
             ]
         );
 
-        
+        // 4. Criar carrinho vazio
         await conexao.query(
             `
-            INSERT INTO carrinho_de_compra
+            INSERT INTO carrinho
             (
                 id_cliente
             )
@@ -168,44 +162,21 @@ export async function atualizar(id, dados) {
     try {
         await conexao.beginTransaction();
 
-       
         await conexao.query(
             `
             UPDATE cliente
             SET
                 nome = ?,
-                telefone = ?
+                cpf = ?,
+                telefone = ?,
+                endereco = ?
             WHERE id_cliente = ?
             `,
             [
                 dados.nome,
+                dados.cpf || null,
                 dados.telefone || null,
-                id
-            ]
-        );
-
-    
-        await conexao.query(
-            `
-            UPDATE cadastro
-            SET
-                cep = ?,
-                rua = ?,
-                numero = ?,
-                complemento = ?,
-                bairro = ?,
-                cidade = ?,
-                estado = ?
-            WHERE id_cliente = ?
-            `,
-            [
-                dados.cep || null,
-                dados.rua || null,
-                dados.numero || null,
-                dados.complemento || null,
-                dados.bairro || null,
-                dados.cidade || null,
-                dados.estado || null,
+                dados.endereco || null,
                 id
             ]
         );
@@ -222,13 +193,40 @@ export async function atualizar(id, dados) {
 }
 
 export async function desativar(id) {
-    const [resultado] = await db.query(
-        `
-        DELETE FROM cliente
-        WHERE id_cliente = ?
-        `,
-        [id]
-    );
+    const conexao = await db.getConnection();
 
-    return resultado;
+    try {
+        await conexao.beginTransaction();
+
+        await conexao.query(
+            `
+            UPDATE login
+            SET ativo = FALSE
+            WHERE id_cliente = ?
+            `,
+            [id]
+        );
+
+        await conexao.query(
+            `
+            UPDATE cadastro
+            SET status = 'inativo'
+            WHERE id_cliente = ?
+            `,
+            [id]
+        );
+
+        await conexao.commit();
+
+        return {
+            mensagem: "Cliente desativado com sucesso."
+        };
+
+    } catch (erro) {
+        await conexao.rollback();
+        throw erro;
+
+    } finally {
+        conexao.release();
+    }
 }

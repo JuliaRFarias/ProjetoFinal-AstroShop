@@ -1,5 +1,4 @@
-// const express = require("express");
-// const cors = require("cors");
+
 import express from "express";
 import cors from "cors";
 import session from "express-session";
@@ -15,34 +14,42 @@ import notaFiscalRoutes from "./routes/notaFiscalRoutes.js";
 
 const app = express();
 
+// CORS
 app.use(cors({
-    origin: process.env.FRONTEND_ORIGIN,
+    origin: [
+        "http://127.0.0.1:5501",
+        "http://localhost:5501",
+        "http://127.0.0.1:5500",
+        "http://localhost:5500"
+    ],
     credentials: true
 }));
 
+// RECEBER JSON
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// LOG DAS REQUISIÇÕES
+app.use((req, res, next) => {
+    console.log(`[REQUISIÇÃO] ${req.method} ${req.originalUrl}`);
+    next();
+});
+
+// SESSÃO
 app.use(session({
     name: "astroshop.sid",
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || "astroshop-secret",
     resave: false,
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        sameSite: "lax",
         secure: false,
-        maxAge: 1000 * 60 * 60 * 4
+        sameSite: "lax",
+        maxAge: 1000 * 60 * 60
     }
 }));
 
-app.get("/api/health", (req, res) => {
-    res.json({
-        sucesso: true,
-        mensagem: "API AstroShop funcionando!"
-    });
-});
-
+// ROTAS
 app.use("/api/auth", authRoutes);
 app.use("/api/clientes", clienteRoutes);
 app.use("/api/produtos", produtoRoutes);
@@ -51,17 +58,27 @@ app.use("/api/compras", compraRoutes);
 app.use("/api/vendas", vendaRoutes);
 app.use("/api/notas-fiscais", notaFiscalRoutes);
 
-app.use((req, res) => {
-    res.status(404).json({
-        erro: "Rota não encontrada."
+// TESTE DA API
+app.get("/", (req, res) => {
+    res.json({
+        mensagem: "API AstroShop funcionando!"
     });
 });
 
-app.use((err, req, res, next) => {
-    console.error(err);
+// TESTE DE CONEXÃO
+app.get("/api/health", (req, res) => {
+    res.json({
+        status: "OK",
+        mensagem: "API AstroShop funcionando!"
+    });
+});
+
+// ERROS
+app.use((erro, req, res, next) => {
+    console.error("ERRO NA API:", erro);
 
     res.status(500).json({
-        erro: "Erro interno do servidor."
+        mensagem: "Erro interno no servidor."
     });
 });
 

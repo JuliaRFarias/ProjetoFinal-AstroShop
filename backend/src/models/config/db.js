@@ -14,7 +14,7 @@ const pool = mysql.createPool({
 
     password: process.env.DB_PASSWORD || "root",
 
-    database: process.env.DB_NAME || "projeto_integrador",
+    database: process.env.DB_NAME || "projetofinal_astroshop",
 
     waitForConnections: true,
 

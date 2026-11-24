@@ -1,3 +1,4 @@
+
 import { Router } from "express";
 
 import * as controller from "../controllers/carrinhoController.js";
@@ -8,8 +9,13 @@ const router = Router();
 router.use(exigirLogin);
 
 router.get("/", controller.listar);
-router.post("/", controller.adicionar);
-router.put("/:itemId", controller.alterar);
-router.delete("/:itemId", controller.remover);
+
+router.post("/itens", controller.adicionar);
+
+router.put("/itens/:idProduto", controller.alterar);
+
+router.delete("/itens/:idProduto", controller.remover);
+
+router.delete("/", controller.excluir);
 
 export default router;
