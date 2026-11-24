@@ -357,3 +357,396 @@ img {
     padding: 42px 0;
   }
 }
+
+/* =================================
+   BANNER PRINCIPAL ASTROSHOP
+================================= */
+
+.hero {
+    min-height: 480px;
+    padding: 75px 0;
+    display: flex;
+    align-items: center;
+    background:
+        linear-gradient(
+            90deg,
+            rgba(16, 42, 86, 0.92),
+            rgba(16, 42, 86, 0.35)
+        ),
+        url("https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1600&q=80")
+        center / cover no-repeat;
+    color: white;
+}
+
+.hero-conteudo {
+    max-width: 1150px;
+    width: 92%;
+    margin: auto;
+}
+
+.hero h1 {
+    max-width: 750px;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.1;
+    color: white;
+}
+
+.hero h1 span {
+    color: var(--cor-destaque);
+}
+
+.hero p {
+    max-width: 650px;
+    color: white;
+    font-size: 1.1rem;
+}
+
+.hero-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+
+/* =================================
+   CARROSSEL
+================================= */
+
+.carrossel {
+    width: 100%;
+    margin-top: 30px;
+    overflow: hidden;
+    border-radius: var(--raio);
+    box-shadow: var(--sombra);
+}
+
+.slide {
+    display: none;
+    min-height: 380px;
+    padding: 40px;
+    align-items: center;
+    background-image:
+        linear-gradient(
+            90deg,
+            rgba(16, 42, 86, 0.92),
+            rgba(16, 42, 86, 0.30)
+        ),
+        var(--imagem-slide);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: white;
+}
+
+.slide.ativo {
+    display: flex;
+    animation: surgir 0.5s ease;
+}
+
+.slide-conteudo {
+    max-width: 550px;
+}
+
+.slide-conteudo h3 {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    color: white;
+}
+
+.slide-conteudo p {
+    color: white;
+}
+
+.carrossel-controles {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 18px;
+    background: white;
+}
+
+#slide-indicador {
+    font-weight: bold;
+    color: var(--cor-primaria);
+}
+
+
+/* =================================
+   CATEGORIAS
+================================= */
+
+.categorias {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(190px, 1fr)
+    );
+    gap: 18px;
+    margin-top: 25px;
+}
+
+.categoria-card {
+    padding: 25px;
+    background: white;
+    border: 1px solid var(--borda);
+    border-bottom: 4px solid var(--cor-secundaria);
+    border-radius: var(--raio);
+    box-shadow: var(--sombra);
+    transition: var(--transicao);
+}
+
+.categoria-card:hover {
+    transform: translateY(-5px);
+    border-bottom-color: var(--cor-destaque);
+}
+
+.categoria-card .icone {
+    font-size: 2rem;
+}
+
+
+/* =================================
+   CELULARES
+================================= */
+
+@media (max-width: 600px) {
+    .hero {
+        min-height: 400px;
+        padding: 45px 0;
+    }
+
+    .slide {
+        min-height: 320px;
+        padding: 24px;
+    }
+}
+
+
+[hidden] {
+    display: none !important;
+}
+
+.pagamento-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.pagamento-conteudo {
+    background: #fff;
+    color: #102A56;
+    width: 100%;
+    max-width: 480px;
+    padding: 28px;
+    border-radius: 14px;
+}
+
+.opcao-pagamento {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    margin: 12px 0;
+    border: 1px solid #d5dce8;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.opcao-pagamento input {
+    width: 18px;
+    height: 18px;
+}
+
+.acoes-pagamento {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+
+/* =================================
+   PÁGINA MINHAS COMPRAS
+================================= */
+
+.pagina-compras {
+    min-height: 70vh;
+}
+
+.cabecalho-compras {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.cabecalho-compras .titulo-secao {
+    margin-bottom: 8px;
+}
+
+.lista-compras {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 25px;
+}
+
+.compra-card {
+    background: #ffffff;
+    border: 1px solid #dce5f0;
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 4px 14px rgba(16, 42, 86, 0.07);
+}
+
+.compra-topo,
+.compra-rodape {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.compra-numero {
+    color: #102A56;
+    font-size: 20px;
+    margin: 0 0 7px;
+}
+
+.compra-data {
+    color: #64748b;
+    margin: 0;
+    font-size: 14px;
+}
+
+.status-compra {
+    display: inline-block;
+    padding: 7px 13px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.status-confirmada {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-pendente {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-cancelada {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.compra-rodape {
+    border-top: 1px solid #e5eaf1;
+    margin-top: 20px;
+    padding-top: 18px;
+}
+
+.compra-total {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.compra-total strong {
+    color: #102A56;
+    font-size: 21px;
+}
+
+.botao-detalhes {
+    cursor: pointer;
+}
+
+.detalhes-compra {
+    margin-top: 20px;
+    padding: 18px;
+    background: #f4f8ff;
+    border-radius: 10px;
+    color: #102A56;
+}
+
+.detalhes-compra h3 {
+    margin: 0 0 15px;
+}
+
+.item-compra {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 0;
+    border-bottom: 1px solid #dce5f0;
+}
+
+.item-compra:last-child {
+    border-bottom: none;
+}
+
+.item-compra strong {
+    white-space: nowrap;
+}
+
+.estado-compras {
+    background: #ffffff;
+    border: 1px solid #dce5f0;
+    border-radius: 14px;
+    padding: 35px 20px;
+    text-align: center;
+    color: #64748b;
+}
+
+.vazio-compras h2 {
+    color: #102A56;
+    margin-top: 0;
+}
+
+.vazio-compras p {
+    margin-bottom: 22px;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 600px) {
+    .cabecalho-compras {
+        align-items: flex-start;
+    }
+
+    .compra-card {
+        padding: 17px;
+    }
+
+    .compra-topo,
+    .compra-rodape {
+        align-items: flex-start;
+    }
+
+    .compra-rodape {
+        flex-direction: column;
+    }
+
+    .item-compra {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+    }
+}

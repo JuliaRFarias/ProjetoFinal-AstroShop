@@ -1,44 +1,34 @@
-// Verifica se o usuário está conectado
-if (AstroShop.exigirLogin()) {
 
-    iniciarHome();
+// INICIAR A PÁGINA INICIAL
+document.addEventListener("DOMContentLoaded", function () {
 
-}
-
-function iniciarHome() {
-
-    // BOTÃO SAIR
+    // Mantém o botão sair escondido para visitantes
     const botaoSair = document.querySelector("#botao-sair");
 
     if (botaoSair) {
-        botaoSair.hidden = false;
-
-        botaoSair.addEventListener("click", function() {
-            AstroShop.sair();
-        });
+        botaoSair.hidden = true;
     }
 
-    // ESCONDER LINK ENTRAR
+    // Mantém o link de login visível
     const linkLogin = document.querySelector("#link-login");
 
     if (linkLogin) {
-        linkLogin.hidden = true;
+        linkLogin.hidden = false;
     }
 
-    // CARROSSEL
+    // Iniciar carrossel
     iniciarCarrossel();
 
-    // PRODUTOS EM DESTAQUE
+    // Carregar produtos
     carregarDestaques();
 
-}
+});
 
 
-// FUNÇÃO DO CARROSSEL
+// CARROSSEL
 function iniciarCarrossel() {
 
     const slides = document.querySelectorAll(".slide");
-
     const anterior = document.querySelector("#slide-anterior");
     const proximo = document.querySelector("#slide-proximo");
     const indicador = document.querySelector("#slide-indicador");
@@ -51,9 +41,7 @@ function iniciarCarrossel() {
     function mostrarSlide(numero) {
 
         slides.forEach(function(slide, indice) {
-
             slide.classList.toggle("ativo", indice === numero);
-
         });
 
         atual = numero;
@@ -61,27 +49,19 @@ function iniciarCarrossel() {
         if (indicador) {
             indicador.textContent = `${atual + 1} / ${slides.length}`;
         }
-
     }
 
     function avancar() {
-
         mostrarSlide((atual + 1) % slides.length);
-
     }
 
     function voltar() {
-
         mostrarSlide((atual - 1 + slides.length) % slides.length);
-
     }
 
     function reiniciarTemporizador() {
-
         clearInterval(temporizador);
-
         temporizador = setInterval(avancar, 5000);
-
     }
 
     if (proximo) {
@@ -99,47 +79,63 @@ function iniciarCarrossel() {
     }
 
     mostrarSlide(0);
-
     reiniciarTemporizador();
-
 }
 
 
-// CARREGAR PRODUTOS DA API
+// PRODUTOS EM DESTAQUE
 async function carregarDestaques() {
-
     const area = document.querySelector("#produtos-destaque");
     const mensagem = document.querySelector("#mensagem-home");
 
     if (!area) return;
 
-    try {
+    // Imagens armazenadas diretamente no frontend
+    const imagensProdutos = {
+        telescopio: "../images/telescopio.png",
+        pendulo: "../imagens/pendulo.png",
+        microscopio: "../imagens/microscopio.png",
+        oculos: "../imagens/oculos-vr.png"
+    };
 
+    try {
         const produtos = await AstroShop.requisicaoAPI("/api/produtos");
 
         area.innerHTML = "";
 
         if (!produtos.length) {
-
-            area.innerHTML = `
-                <p class="texto-secundario">
-                    Nenhum produto cadastrado.
-                </p>
-            `;
-
+            area.textContent = "Nenhum produto cadastrado.";
             return;
         }
 
-        produtos.slice(0, 4).forEach(function(produto) {
-
+        produtos.slice(0, 4).forEach(function(produto, indice) {
             const card = document.createElement("article");
-
             card.className = "card";
 
             const imagem = document.createElement("img");
-            imagem.src = produto.imagem || "";
+
+            const nome = produto.nome.toLowerCase();
+
+            if (nome.includes("telescopio") || nome.includes("telescópio")) {
+                imagem.src = imagensProdutos.telescopio;
+            } else if (nome.includes("pendulo") || nome.includes("pêndulo")) {
+                imagem.src = imagensProdutos.pendulo;
+            } else if (nome.includes("microscopio") || nome.includes("microscópio")) {
+                imagem.src = imagensProdutos.microscopio;
+            } else if (nome.includes("vr") || nome.includes("óculos")) {
+                imagem.src = imagensProdutos.oculos;
+            } else {
+                imagem.src = imagensProdutos[
+                    Object.keys(imagensProdutos)[indice % 4]
+                ];
+            }
+
             imagem.alt = produto.nome;
             imagem.loading = "lazy";
+
+            imagem.onerror = function() {
+                imagem.alt = "Imagem do produto indisponível";
+            };
 
             const conteudo = document.createElement("div");
             conteudo.className = "card-info";
@@ -168,21 +164,16 @@ async function carregarDestaques() {
             card.appendChild(conteudo);
 
             area.appendChild(card);
-
         });
 
     } catch (erro) {
-
-        area.innerHTML = `
-            <p class="texto-secundario">
-                Não foi possível carregar os produtos.
-            </p>
-        `;
+        area.textContent = "Não foi possível carregar os produtos.";
 
         if (mensagem) {
-            mensagem.textContent = erro.message;
+            mensagem.textContent =
+                "Verifique se o servidor backend está funcionando.";
         }
 
+        console.error("Erro ao carregar produtos:", erro);
     }
-
 }

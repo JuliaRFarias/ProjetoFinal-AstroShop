@@ -2,65 +2,69 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AstroShop | Login</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AstroShop | Login</title>
+    <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <main class="pagina-formulario">
-    <section class="card-formulario">
 
-      <a class="logo" href="../pages/home.html">✦ AstroShop</a>
+    <main class="pagina-formulario">
+        <section class="card-formulario">
 
-      <h1>Bem-vindo de volta!</h1>
-      <p>Entre na sua conta para explorar o universo.</p>
+            <a class="logo" href="../pages/home.html">✦ AstroShop</a>
 
-      <form id="form-login" class="formulario">
+            <h1>Bem-vindo de volta!</h1>
+            <p>Entre na sua conta para explorar o universo.</p>
 
-        <div class="campo">
-          <label for="email">E-mail</label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            autocomplete="email"
-            required
-          >
-        </div>
+            <form id="form-login" class="formulario">
 
-        <div class="campo">
-          <label for="senha">Senha</label>
-          <input
-            id="senha"
-            name="senha"
-            type="password"
-            autocomplete="current-password"
-            required
-          >
-        </div>
+                <div class="campo">
+                    <label for="email">E-mail</label>
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
 
-        <button class="botao" type="submit">Entrar</button>
+                <div class="campo">
+                    <label for="senha">Senha</label>
+                    <input
+                        id="senha"
+                        name="senha"
+                        type="password"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
 
-        <p id="mensagem-login" class="mensagem" aria-live="polite"></p>
+                <button class="botao" type="submit">Entrar</button>
 
-      </form>
+                <p id="mensagem" class="mensagem" aria-live="polite"></p>
 
-      <p>
-        Não tem uma conta?
-        <a class="link-formulario" href="./cadastro.html">
-          Cadastre-se
-        </a>
-      </p>
+            </form>
 
-      <a class="voltar" href="../pages/home.html">
-        ← Voltar à loja
-      </a>
+            <p>
+                Não tem uma conta?
+                <a class="link-formulario" href="./cadastro.html">
+                    Cadastre-se
+                </a>
+            </p>
 
-    </section>
-  </main>
+            <a class="voltar" href="../pages/home.html">
+                ← Voltar à loja
+            </a>
 
-  <script src="./login.js"></script>
+        </section>
+    </main>
+
+   
+
+    <!-- JavaScript do login -->
+    <script src="./login.js"></script>
+
 </body>
 </html>
-

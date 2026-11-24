@@ -5,176 +5,301 @@ const mensagemCarrinho = document.querySelector("#mensagem-carrinho");
 const botaoFinalizar = document.querySelector("#finalizar-compra");
 const botaoLimpar = document.querySelector("#limpar-carrinho");
 
+const modalPagamento = document.querySelector("#modal-pagamento");
+const formularioPagamento = document.querySelector("#form-pagamento");
+const botaoConfirmar = document.querySelector("#confirmar-pagamento");
+const botaoCancelar = document.querySelector("#cancelar-pagamento");
+const mensagemPagamento = document.querySelector("#mensagem-pagamento");
+
 let itensCarrinho = [];
+let finalizandoCompra = false;
 
 function informar(texto, tipo = "") {
-  mensagemCarrinho.textContent = texto;
-  mensagemCarrinho.className = `mensagem ${tipo}`;
+    mensagemCarrinho.textContent = texto;
+    mensagemCarrinho.className = `mensagem ${tipo}`;
 }
 
+function abrirPagamento() {
+    if (!itensCarrinho.length || finalizandoCompra) {
+        return;
+    }
+
+    mensagemPagamento.textContent = "";
+    modalPagamento.hidden = false;
+}
+
+function fecharPagamento() {
+    if (finalizandoCompra) return;
+
+    modalPagamento.hidden = true;
+}
+
+// CARREGAR CARRINHO
 async function carregarCarrinho() {
-  if (!AstroShop.obterToken()) {
-    areaCarrinho.innerHTML = `
-      <div class="vazio">
-        <p>Entre na sua conta para consultar o carrinho.</p>
-        <a class="botao" href="../formularios/login.html">Fazer login</a>
-      </div>
-    `;
-    totalCarrinho.textContent = AstroShop.formatarPreco(0);
-    botaoFinalizar.disabled = true;
-    botaoLimpar.disabled = true;
-    return;
-  }
+    try {
+        const dados = await AstroShop.requisicaoAPI("/api/carrinho");
 
-  try {
-    const dados = await AstroShop.requisicaoAPI("/api/carrinho");
-    itensCarrinho = dados.itens;
-    renderizarCarrinho();
-  } catch (erro) {
-    informar(erro.message, "erro");
-  }
+        itensCarrinho = Array.isArray(dados)
+            ? dados
+            : dados.itens || dados.carrinho || [];
+
+        renderizarCarrinho();
+
+    } catch (erro) {
+        console.error("Erro ao carregar carrinho:", erro);
+
+        informar(
+            erro.message || "Erro ao carregar carrinho.",
+            "erro"
+        );
+
+        areaCarrinho.innerHTML = `
+            <div class="vazio">
+                <p>Não foi possível carregar o carrinho.</p>
+                <a class="botao" href="../formularios/login.html">
+                    Fazer login
+                </a>
+            </div>
+        `;
+
+        totalCarrinho.textContent = AstroShop.formatarPreco(0);
+        botaoFinalizar.disabled = true;
+        botaoLimpar.disabled = true;
+    }
 }
 
+// RENDERIZAR CARRINHO
 function renderizarCarrinho() {
-  areaCarrinho.innerHTML = "";
+    areaCarrinho.innerHTML = "";
 
-  if (!itensCarrinho.length) {
-    areaCarrinho.innerHTML =
-      '<div class="vazio">Seu carrinho está vazio. Explore nosso catálogo!</div>';
+    if (!itensCarrinho.length) {
+        areaCarrinho.innerHTML = `
+            <div class="vazio">
+                <p>Seu carrinho está vazio.</p>
+                <a class="botao" href="produtos.html">
+                    Explorar produtos
+                </a>
+            </div>
+        `;
 
-    totalCarrinho.textContent = AstroShop.formatarPreco(0);
-    botaoFinalizar.disabled = true;
-    botaoLimpar.disabled = true;
-    return;
-  }
+        totalCarrinho.textContent = AstroShop.formatarPreco(0);
+        botaoFinalizar.disabled = true;
+        botaoLimpar.disabled = true;
 
-  botaoFinalizar.disabled = false;
-  botaoLimpar.disabled = false;
+        return;
+    }
 
-  let total = 0;
+    botaoFinalizar.disabled = finalizandoCompra;
+    botaoLimpar.disabled = finalizandoCompra;
 
-  itensCarrinho.forEach(item => {
-    const preco = Number(item.preco);
-    const quantidade = Number(item.quantidade);
-    const subtotal = preco * quantidade;
+    let total = 0;
 
-    total += subtotal;
+    itensCarrinho.forEach(item => {
+        const preco = Number(
+            item.preco ?? item.preco_unitario ?? 0
+        );
 
-    const elemento = document.createElement("article");
-    elemento.className = "item-carrinho";
+        const quantidade = Number(item.quantidade || 1);
+        const estoque = Number(item.estoque || 1);
+        const idProduto = Number(item.id_produto);
 
-    elemento.innerHTML = `
-      <div>
-        <h3>${AstroShop.escaparHTML(item.nome)}</h3>
-        <p class="texto-secundario">
-          ${AstroShop.formatarPreco(preco)} por unidade
-        </p>
-        <p>Subtotal: <strong>${AstroShop.formatarPreco(subtotal)}</strong></p>
-      </div>
-      <div class="controles-quantidade">
-        <label for="quantidade-${Number(item.id_produto)}">Qtd.</label>
-        <input id="quantidade-${Number(item.id_produto)}"
-          type="number" min="1" max="${Number(item.estoque)}"
-          value="${quantidade}"
-          data-quantidade="${Number(item.id_produto)}">
-        <button class="botao botao-secundario"
-          data-remover="${Number(item.id_produto)}" type="button">
-          Remover
-        </button>
-      </div>
-    `;
+        const subtotal = preco * quantidade;
+        total += subtotal;
 
-    areaCarrinho.appendChild(elemento);
-  });
+        const elemento = document.createElement("article");
+        elemento.className = "item-carrinho";
 
-  totalCarrinho.textContent = AstroShop.formatarPreco(total);
+        const nome = document.createElement("h3");
+        nome.textContent = item.nome || item.nome_produto || "Produto";
+
+        const precoTexto = document.createElement("p");
+        precoTexto.textContent =
+            `${AstroShop.formatarPreco(preco)} por unidade`;
+
+        const subtotalTexto = document.createElement("p");
+        subtotalTexto.textContent =
+            `Subtotal: ${AstroShop.formatarPreco(subtotal)}`;
+
+        const controles = document.createElement("div");
+        controles.className = "controles-quantidade";
+
+        const label = document.createElement("label");
+        label.textContent = "Quantidade";
+
+        const campo = document.createElement("input");
+        campo.type = "number";
+        campo.min = "1";
+        campo.max = String(estoque);
+        campo.value = String(quantidade);
+        campo.dataset.quantidade = String(idProduto);
+
+        const remover = document.createElement("button");
+        remover.className = "botao botao-secundario";
+        remover.type = "button";
+        remover.dataset.remover = String(idProduto);
+        remover.textContent = "Remover";
+
+        controles.append(label, campo, remover);
+
+        elemento.append(
+            nome,
+            precoTexto,
+            subtotalTexto,
+            controles
+        );
+
+        areaCarrinho.appendChild(elemento);
+    });
+
+    totalCarrinho.textContent = AstroShop.formatarPreco(total);
 }
 
-areaCarrinho.addEventListener("change", async event => {
-  const campo = event.target.closest("[data-quantidade]");
-  if (!campo) return;
+// ATUALIZAR QUANTIDADE
+areaCarrinho.addEventListener("change", async evento => {
+    const campo = evento.target.closest("[data-quantidade]");
 
-  const idProduto = Number(campo.dataset.quantidade);
-  const quantidade = Number(campo.value);
+    if (!campo || finalizandoCompra) return;
 
-  if (!Number.isInteger(quantidade) || quantidade < 1) {
-    informar("Informe uma quantidade válida.", "erro");
-    await carregarCarrinho();
-    return;
-  }
+    const idProduto = Number(campo.dataset.quantidade);
+    const quantidade = Number(campo.value);
 
-  try {
-    await AstroShop.requisicaoAPI(
-      `/api/carrinho/itens/${idProduto}`,
-      {
-        method: "PUT",
-        body: JSON.stringify({ quantidade })
-      }
-    );
+    if (!Number.isInteger(quantidade) || quantidade < 1) {
+        informar("Informe uma quantidade válida.", "erro");
+        await carregarCarrinho();
+        return;
+    }
 
-    informar("Quantidade atualizada.", "sucesso");
-    await carregarCarrinho();
-  } catch (erro) {
-    informar(erro.message, "erro");
-    await carregarCarrinho();
-  }
+    try {
+        await AstroShop.requisicaoAPI(
+            `/api/carrinho/itens/${idProduto}`,
+            {
+                method: "PUT",
+                body: JSON.stringify({ quantidade })
+            }
+        );
+
+        informar("Quantidade atualizada!", "sucesso");
+        await carregarCarrinho();
+
+    } catch (erro) {
+        informar(erro.message, "erro");
+        await carregarCarrinho();
+    }
 });
 
-areaCarrinho.addEventListener("click", async event => {
-  const botao = event.target.closest("[data-remover]");
-  if (!botao) return;
+// REMOVER PRODUTO
+areaCarrinho.addEventListener("click", async evento => {
+    const botao = evento.target.closest("[data-remover]");
 
-  try {
-    await AstroShop.requisicaoAPI(
-      `/api/carrinho/itens/${Number(botao.dataset.remover)}`,
-      { method: "DELETE" }
-    );
+    if (!botao || finalizandoCompra) return;
 
-    informar("Produto removido do carrinho.", "sucesso");
-    await carregarCarrinho();
-  } catch (erro) {
-    informar(erro.message, "erro");
-  }
+    const idProduto = Number(botao.dataset.remover);
+
+    try {
+        await AstroShop.requisicaoAPI(
+            `/api/carrinho/itens/${idProduto}`,
+            { method: "DELETE" }
+        );
+
+        informar("Produto removido do carrinho!", "sucesso");
+        await carregarCarrinho();
+
+    } catch (erro) {
+        informar(erro.message, "erro");
+    }
 });
 
+// LIMPAR CARRINHO
 botaoLimpar.addEventListener("click", async () => {
-  if (!confirm("Deseja remover todos os itens do carrinho?")) return;
+    if (finalizandoCompra) return;
 
-  try {
-    await AstroShop.requisicaoAPI("/api/carrinho", {
-      method: "DELETE"
-    });
+    if (!confirm("Deseja remover todos os itens do carrinho?")) {
+        return;
+    }
 
-    informar("Carrinho esvaziado.", "sucesso");
-    await carregarCarrinho();
-  } catch (erro) {
-    informar(erro.message, "erro");
-  }
+    try {
+        await AstroShop.requisicaoAPI("/api/carrinho", {
+            method: "DELETE"
+        });
+
+        informar("Carrinho esvaziado!", "sucesso");
+        await carregarCarrinho();
+
+    } catch (erro) {
+        informar(erro.message, "erro");
+    }
 });
 
-botaoFinalizar.addEventListener("click", async () => {
-  if (!itensCarrinho.length) return;
+// ABRIR JANELA DE PAGAMENTO
+botaoFinalizar.addEventListener("click", abrirPagamento);
 
-  botaoFinalizar.disabled = true;
+// CANCELAR E VOLTAR AO CARRINHO
+botaoCancelar.addEventListener("click", fecharPagamento);
 
-  try {
-    const compra = await AstroShop.requisicaoAPI("/api/compras", {
-      method: "POST"
-    });
+// CONFIRMAR PAGAMENTO E FINALIZAR COMPRA
+formularioPagamento.addEventListener("submit", async evento => {
+    evento.preventDefault();
 
-    informar(
-      `Compra ${compra.id_compra} registrada. Total: ${
-        AstroShop.formatarPreco(compra.valor_total)
-      }`,
-      "sucesso"
-    );
+    if (finalizandoCompra || !itensCarrinho.length) {
+        return;
+    }
 
-    await carregarCarrinho();
-  } catch (erro) {
-    informar(erro.message, "erro");
-  } finally {
-    botaoFinalizar.disabled = false;
-  }
+    const metodoPagamento = formularioPagamento.querySelector(
+        'input[name="metodo_pagamento"]:checked'
+    )?.value;
+
+    if (!metodoPagamento) {
+        mensagemPagamento.textContent =
+            "Selecione uma forma de pagamento.";
+        return;
+    }
+
+    finalizandoCompra = true;
+
+    botaoConfirmar.disabled = true;
+    botaoCancelar.disabled = true;
+    botaoFinalizar.disabled = true;
+    botaoLimpar.disabled = true;
+
+    botaoConfirmar.textContent = "Processando...";
+
+    try {
+        const resposta = await AstroShop.requisicaoAPI(
+            "/api/compras",
+            {
+                method: "POST",
+                body: JSON.stringify({
+                    metodo_pagamento: metodoPagamento
+                })
+            }
+        );
+
+        modalPagamento.hidden = true;
+
+        await carregarCarrinho();
+
+        informar(
+            `Compra ${resposta.id_compra} registrada com sucesso! Forma de pagamento: ${metodoPagamento.toUpperCase()}.`,
+            "sucesso"
+        );
+
+    } catch (erro) {
+        console.error("Erro ao finalizar compra:", erro);
+
+        mensagemPagamento.textContent =
+            erro.message || "Não foi possível finalizar a compra.";
+
+    } finally {
+        finalizandoCompra = false;
+
+        botaoConfirmar.disabled = false;
+        botaoCancelar.disabled = false;
+        botaoConfirmar.textContent = "Confirmar compra";
+
+        botaoFinalizar.disabled = itensCarrinho.length === 0;
+        botaoLimpar.disabled = itensCarrinho.length === 0;
+    }
 });
 
+// INICIAR
 carregarCarrinho();

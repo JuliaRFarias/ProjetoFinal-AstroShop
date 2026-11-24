@@ -5,91 +5,160 @@ const mensagem = document.querySelector("#mensagem-produtos");
 
 let produtos = [];
 
+// FORMATAR PREÇO
+function formatarPreco(valor) {
+    return Number(valor || 0).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+    });
+}
+
+// CARREGAR PRODUTOS
 async function carregarProdutos() {
-  try {
-    produtos = await AstroShop.requisicaoAPI("/api/produtos");
-    renderizarProdutos();
-  } catch (erro) {
-    mensagem.textContent = erro.message;
-    mensagem.className = "mensagem erro";
-    areaProdutos.innerHTML = "";
-  }
+    try {
+        mensagem.textContent = "Carregando produtos...";
+
+        const dados = await AstroShop.requisicaoAPI("/api/produtos");
+
+        produtos = Array.isArray(dados)
+            ? dados
+            : dados.produtos || dados.dados || [];
+
+        mensagem.textContent = "";
+        renderizarProdutos();
+
+    } catch (erro) {
+        mensagem.textContent = erro.message;
+        mensagem.className = "mensagem erro";
+        areaProdutos.innerHTML = "";
+        console.error("Erro ao carregar produtos:", erro);
+    }
 }
 
+// OBTER IMAGEM DO PRODUTO
+function obterImagem(produto) {
+    return produto.imagem_url ||
+           produto.imagem ||
+           produto.foto ||
+           "https://placehold.co/600x400/102A56/FFFFFF?text=AstroShop";
+}
+
+// MOSTRAR PRODUTOS
 function renderizarProdutos() {
-  const termo = campoBusca.value.trim().toLowerCase();
+    const termo = campoBusca.value.trim().toLowerCase();
 
-  const filtrados = produtos.filter(produto =>
-    `${produto.nome} ${produto.categoria} ${produto.descricao || ""}`
-      .toLowerCase()
-      .includes(termo)
-  );
+    const filtrados = produtos.filter(produto =>
+        `${produto.nome || ""} ${produto.categoria || ""} ${produto.descricao || ""}`
+            .toLowerCase()
+            .includes(termo)
+    );
 
-  areaProdutos.innerHTML = "";
+    areaProdutos.innerHTML = "";
 
-  if (!filtrados.length) {
-    areaProdutos.innerHTML =
-      '<p class="vazio">Nenhum produto encontrado.</p>';
-    return;
-  }
+    if (!filtrados.length) {
+        areaProdutos.innerHTML =
+            '<p class="vazio">Nenhum produto encontrado.</p>';
+        return;
+    }
 
-  filtrados.forEach(produto => {
-    const card = document.createElement("article");
-    card.className = "produto-card";
+    filtrados.forEach(produto => {
+        const card = document.createElement("article");
+        card.className = "produto-card";
 
-    card.innerHTML = `
-      <div class="produto-conteudo">
-        <p class="texto-secundario">${AstroShop.escaparHTML(produto.categoria)}</p>
-        <h2>${AstroShop.escaparHTML(produto.nome)}</h2>
-        <p>${AstroShop.escaparHTML(produto.descricao || "Sem descrição.")}</p>
-        <p class="texto-secundario">
-          ${Number(produto.estoque) > 0
-            ? `Estoque: ${Number(produto.estoque)}`
-            : "Indisponível"}
-        </p>
-        <span class="preco">${AstroShop.formatarPreco(produto.preco)}</span>
-        <button class="botao" type="button"
-          data-adicionar="${Number(produto.id_produto)}"
-          ${Number(produto.estoque) <= 0 ? "disabled" : ""}>
-          Adicionar ao carrinho
-        </button>
-      </div>
-    `;
+        const imagem = document.createElement("img");
+        imagem.className = "imagem-produto";
+        imagem.src = obterImagem(produto);
+        imagem.alt = produto.nome || "Produto AstroShop";
+        imagem.loading = "lazy";
 
-    areaProdutos.appendChild(card);
-  });
+        imagem.onerror = () => {
+            imagem.onerror = null;
+            imagem.src =
+                "https://placehold.co/600x400/102A56/FFFFFF?text=Imagem+indisponivel";
+        };
+
+        const conteudo = document.createElement("div");
+        conteudo.className = "produto-conteudo";
+
+        const categoria = document.createElement("p");
+        categoria.className = "texto-secundario";
+        categoria.textContent = produto.categoria || "AstroShop";
+
+        const nome = document.createElement("h2");
+        nome.textContent = produto.nome || "Produto";
+
+        const descricao = document.createElement("p");
+        descricao.textContent = produto.descricao || "Sem descrição.";
+
+        const estoque = document.createElement("p");
+        estoque.className = "texto-secundario";
+        estoque.textContent = Number(produto.estoque) > 0
+            ? `Estoque: ${produto.estoque}`
+            : "Indisponível";
+
+        const preco = document.createElement("span");
+        preco.className = "preco";
+        preco.textContent = formatarPreco(produto.preco);
+
+        const botao = document.createElement("button");
+        botao.className = "botao";
+        botao.type = "button";
+        botao.dataset.adicionar = produto.id_produto;
+        botao.textContent = "Adicionar ao carrinho";
+        botao.disabled = Number(produto.estoque) <= 0;
+
+        conteudo.append(
+            categoria,
+            nome,
+            descricao,
+            estoque,
+            preco,
+            botao
+        );
+
+        card.append(imagem, conteudo);
+        areaProdutos.appendChild(card);
+    });
 }
 
+// BUSCAR PRODUTOS
 campoBusca.addEventListener("input", renderizarProdutos);
 
-areaProdutos.addEventListener("click", async event => {
-  const botao = event.target.closest("[data-adicionar]");
-  if (!botao) return;
+// ADICIONAR AO CARRINHO
+areaProdutos.addEventListener("click", async evento => {
+    const botao = evento.target.closest("[data-adicionar]");
 
-  if (!AstroShop.obterToken()) {
-    window.location.href = "../formularios/login.html";
-    return;
-  }
+    if (!botao) return;
 
-  botao.disabled = true;
+    const idProduto = Number(botao.dataset.adicionar);
 
-  try {
-    await AstroShop.requisicaoAPI("/api/carrinho/itens", {
-      method: "POST",
-      body: JSON.stringify({
-        id_produto: Number(botao.dataset.adicionar),
-        quantidade: 1
-      })
-    });
+    botao.disabled = true;
+    botao.textContent = "Adicionando...";
 
-    mensagem.textContent = "Produto adicionado ao carrinho!";
-    mensagem.className = "mensagem sucesso";
-  } catch (erro) {
-    mensagem.textContent = erro.message;
-    mensagem.className = "mensagem erro";
-  } finally {
-    botao.disabled = false;
-  }
+    try {
+        await AstroShop.requisicaoAPI("/api/carrinho/itens", {
+            method: "POST",
+            body: JSON.stringify({
+                id_produto: idProduto,
+                quantidade: 1
+            })
+        });
+
+        mensagem.textContent = "Produto adicionado ao carrinho!";
+        mensagem.className = "mensagem sucesso";
+        botao.textContent = "Adicionado!";
+
+    } catch (erro) {
+        mensagem.textContent = erro.message;
+        mensagem.className = "mensagem erro";
+        botao.textContent = "Adicionar ao carrinho";
+
+        console.error("Erro ao adicionar ao carrinho:", erro);
+
+    } finally {
+        botao.disabled = false;
+    }
 });
 
+// INICIAR
 carregarProdutos();
