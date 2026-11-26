@@ -1,9 +1,10 @@
+
 import jwt from "jsonwebtoken";
 
+// AUTENTICAÇÃO POR TOKEN JWT
 export function autenticar(req, res, next) {
     const authorization = req.headers.authorization;
 
-  
     if (!authorization) {
         return res.status(401).json({
             erro: "Token de autenticação não informado."
@@ -18,20 +19,16 @@ export function autenticar(req, res, next) {
         });
     }
 
-    const token = partes[1];
-
     try {
-        
         if (!process.env.JWT_SECRET) {
             throw new Error("JWT_SECRET não configurado.");
         }
 
         const dados = jwt.verify(
-            token,
+            partes[1],
             process.env.JWT_SECRET
         );
 
-        
         req.usuario = dados;
 
         next();
@@ -43,16 +40,18 @@ export function autenticar(req, res, next) {
     }
 }
 
+// VERIFICAR ADMINISTRADOR
 export function somenteAdmin(req, res, next) {
     if (!req.usuario || req.usuario.tipo !== "ADMIN") {
         return res.status(403).json({
-            erro: "Você não possui permissão para acessar esta funcionalidade."
+            mensagem: "Você não possui permissão para acessar esta funcionalidade."
         });
     }
 
     next();
 }
 
+// VALIDAR ACESSO AO PRÓPRIO CADASTRO
 export function validarProprioUsuario(req, res, next) {
     const idSolicitado = Number(req.params.id);
 
@@ -64,13 +63,14 @@ export function validarProprioUsuario(req, res, next) {
         )
     ) {
         return res.status(403).json({
-            erro: "Você só pode acessar seus próprios dados."
+            mensagem: "Você só pode acessar seus próprios dados."
         });
     }
 
     next();
 }
 
+// AUTENTICAÇÃO POR SESSÃO
 export function exigirLogin(req, res, next) {
     if (!req.session || !req.session.usuario) {
         return res.status(401).json({
@@ -80,4 +80,3 @@ export function exigirLogin(req, res, next) {
 
     next();
 }
-

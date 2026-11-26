@@ -85,7 +85,6 @@ export async function login(req, res) {
             });
         }
 
-        // Cria uma nova sessão após o login.
         req.session.regenerate((erro) => {
             if (erro) {
                 console.error("Erro ao criar sessão:", erro);
@@ -101,10 +100,12 @@ export async function login(req, res) {
                 email: usuario.email
             };
 
-            // Salva a sessão antes de responder ao navegador.
             req.session.save((erroSalvar) => {
                 if (erroSalvar) {
-                    console.error("Erro ao salvar sessão:", erroSalvar);
+                    console.error(
+                        "Erro ao salvar sessão:",
+                        erroSalvar
+                    );
 
                     return res.status(500).json({
                         mensagem: "Não foi possível salvar sua sessão."
@@ -157,7 +158,11 @@ export function logout(req, res) {
             });
         }
 
-        res.clearCookie("astroshop.sid");
+        res.clearCookie("astroshop.sid", {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: false
+        });
 
         return res.status(200).json({
             mensagem: "Logout realizado com sucesso!"
