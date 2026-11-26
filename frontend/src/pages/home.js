@@ -1,33 +1,25 @@
 
+// ==========================================
 // INICIAR A PÁGINA INICIAL
-document.addEventListener("DOMContentLoaded", function () {
+// ==========================================
 
-    // Mantém o botão sair escondido para visitantes
+document.addEventListener("DOMContentLoaded", () => {
     const botaoSair = document.querySelector("#botao-sair");
-
-    if (botaoSair) {
-        botaoSair.hidden = true;
-    }
-
-    // Mantém o link de login visível
     const linkLogin = document.querySelector("#link-login");
 
-    if (linkLogin) {
-        linkLogin.hidden = false;
-    }
+    if (botaoSair) botaoSair.hidden = true;
+    if (linkLogin) linkLogin.hidden = false;
 
-    // Iniciar carrossel
     iniciarCarrossel();
-
-    // Carregar produtos
     carregarDestaques();
-
 });
 
 
+// ==========================================
 // CARROSSEL
-function iniciarCarrossel() {
+// ==========================================
 
+function iniciarCarrossel() {
     const slides = document.querySelectorAll(".slide");
     const anterior = document.querySelector("#slide-anterior");
     const proximo = document.querySelector("#slide-proximo");
@@ -39,8 +31,7 @@ function iniciarCarrossel() {
     let temporizador;
 
     function mostrarSlide(numero) {
-
-        slides.forEach(function(slide, indice) {
+        slides.forEach((slide, indice) => {
             slide.classList.toggle("ativo", indice === numero);
         });
 
@@ -64,116 +55,280 @@ function iniciarCarrossel() {
         temporizador = setInterval(avancar, 5000);
     }
 
-    if (proximo) {
-        proximo.addEventListener("click", function() {
-            avancar();
-            reiniciarTemporizador();
-        });
-    }
+    proximo?.addEventListener("click", () => {
+        avancar();
+        reiniciarTemporizador();
+    });
 
-    if (anterior) {
-        anterior.addEventListener("click", function() {
-            voltar();
-            reiniciarTemporizador();
-        });
-    }
+    anterior?.addEventListener("click", () => {
+        voltar();
+        reiniciarTemporizador();
+    });
 
     mostrarSlide(0);
     reiniciarTemporizador();
 }
 
 
-// PRODUTOS EM DESTAQUE
+// ==========================================
+// IMAGENS DOS PRODUTOS
+// ==========================================
+
+const imagensProdutos = {
+    refrator: "../imagenss/reflator.png",
+    refletor: "../imagens/telescopio.png",
+    pendulo: "../imagens/pendulo.png",
+    optica: "../imagenss/kitdeoptica.png",
+    cronometro: "../imagenss/cronometrodigital.png",
+    padrao: "../imagens/sem-imagem.png"
+};
+
+
+// ==========================================
+// IDENTIFICAR IMAGEM
+// ==========================================
+
+function identificarImagem(nome) {
+    const nomeProduto = String(nome || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+    // Telescópio refletor
+    if (
+        nomeProduto.includes("telescopio") &&
+        nomeProduto.includes("refletor")
+    ) {
+        return imagensProdutos.refletor;
+    }
+
+    // Telescópio refrator
+    if (
+        nomeProduto.includes("telescopio") &&
+        nomeProduto.includes("refrator")
+    ) {
+        return imagensProdutos.refrator;
+    }
+
+    if (nomeProduto.includes("telescopio")) {
+        return imagensProdutos.telescopio;
+    }
+
+    if (nomeProduto.includes("pendulo")) {
+        return imagensProdutos.pendulo;
+    }
+
+    if (nomeProduto.includes("optica") || nomeProduto.includes("otica")) {
+        return imagensProdutos.optica;
+    }
+
+    if (nomeProduto.includes("cronometro")) {
+        return imagensProdutos.cronometro;
+    }
+
+    return imagensProdutos.padrao;
+}
+
+
+// ==========================================
+// FORMATAR PREÇO
+// ==========================================
+
+function formatarPreco(valor) {
+    return Number(valor || 0).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+    });
+}
+
+
+// ==========================================
+// CARREGAR PRODUTOS EM DESTAQUE
+// ==========================================
+
 async function carregarDestaques() {
     const area = document.querySelector("#produtos-destaque");
     const mensagem = document.querySelector("#mensagem-home");
 
     if (!area) return;
 
-    // Imagens armazenadas diretamente no frontend
-    const imagensProdutos = {
-        telescopio: "../images/telescopio.png",
-        pendulo: "../imagens/pendulo.png",
-        microscopio: "../imagens/microscopio.png",
-        oculos: "../imagens/oculos-vr.png"
-    };
+    area.innerHTML = "<p>Carregando produtos...</p>";
 
     try {
-        const produtos = await AstroShop.requisicaoAPI("/api/produtos");
+        if (typeof AstroShop === "undefined") {
+            throw new Error("O arquivo da API não foi carregado.");
+        }
+
+        const resposta = await AstroShop.requisicaoAPI("/api/produtos");
+
+        const produtos = Array.isArray(resposta)
+            ? resposta
+            : resposta?.produtos || resposta?.dados || [];
 
         area.innerHTML = "";
 
         if (!produtos.length) {
-            area.textContent = "Nenhum produto cadastrado.";
+            area.innerHTML = "<p>Nenhum produto cadastrado.</p>";
             return;
         }
 
-        produtos.slice(0, 4).forEach(function(produto, indice) {
+        const termos = [
+            "telescopio",
+            "pendulo",
+            "optica",
+            "cronometro"
+        ];
+
+        const destaques = [];
+
+        termos.forEach(termo => {
+            const encontrados = produtos.filter(produto =>
+                String(produto.nome || "")
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .toLowerCase()
+                    .includes(termo)
+            );
+
+            destaques.push(...encontrados);
+        });
+
+        if (!destaques.length) {
+            area.innerHTML = "<p>Nenhum produto em destaque encontrado.</p>";
+            return;
+        }
+
+        // ==================================
+        // CRIAR CARDS DOS PRODUTOS
+        // ==================================
+
+        destaques.forEach(produto => {
             const card = document.createElement("article");
             card.className = "card";
 
             const imagem = document.createElement("img");
-
-            const nome = produto.nome.toLowerCase();
-
-            if (nome.includes("telescopio") || nome.includes("telescópio")) {
-                imagem.src = imagensProdutos.telescopio;
-            } else if (nome.includes("pendulo") || nome.includes("pêndulo")) {
-                imagem.src = imagensProdutos.pendulo;
-            } else if (nome.includes("microscopio") || nome.includes("microscópio")) {
-                imagem.src = imagensProdutos.microscopio;
-            } else if (nome.includes("vr") || nome.includes("óculos")) {
-                imagem.src = imagensProdutos.oculos;
-            } else {
-                imagem.src = imagensProdutos[
-                    Object.keys(imagensProdutos)[indice % 4]
-                ];
-            }
-
-            imagem.alt = produto.nome;
+            imagem.src = identificarImagem(produto.nome);
+            imagem.alt = produto.nome || "Produto AstroShop";
             imagem.loading = "lazy";
 
-            imagem.onerror = function() {
-                imagem.alt = "Imagem do produto indisponível";
+            imagem.onerror = () => {
+                imagem.onerror = null;
+                imagem.src = imagensProdutos.padrao;
             };
 
             const conteudo = document.createElement("div");
             conteudo.className = "card-info";
 
+            const categoria = document.createElement("p");
+            categoria.className = "texto-secundario";
+            categoria.textContent = produto.categoria || "AstroShop";
+
             const titulo = document.createElement("h3");
-            titulo.textContent = produto.nome;
+            titulo.textContent = produto.nome || "Produto";
 
             const descricao = document.createElement("p");
-            descricao.textContent = produto.descricao || "";
+            descricao.textContent = produto.descricao || "Sem descrição.";
 
             const preco = document.createElement("strong");
             preco.className = "preco";
-            preco.textContent = AstroShop.dinheiro(produto.preco);
+            preco.textContent = formatarPreco(produto.preco);
 
-            const botao = document.createElement("a");
+            const estoque = document.createElement("p");
+            estoque.className = "texto-secundario";
+            estoque.textContent = Number(produto.estoque) > 0
+                ? `Estoque: ${produto.estoque}`
+                : "Indisponível";
+
+            // BOTÃO ADICIONAR AO CARRINHO
+
+            const botao = document.createElement("button");
+
             botao.className = "botao";
-            botao.href = "./produtos.html";
-            botao.textContent = "Ver produto";
+            botao.type = "button";
+            botao.dataset.adicionar = produto.id_produto;
+            botao.textContent = "Adicionar ao carrinho";
+            botao.disabled = Number(produto.estoque) <= 0;
 
-            conteudo.appendChild(titulo);
-            conteudo.appendChild(descricao);
-            conteudo.appendChild(preco);
-            conteudo.appendChild(botao);
+            conteudo.append(
+                categoria,
+                titulo,
+                descricao,
+                preco,
+                estoque,
+                botao
+            );
 
-            card.appendChild(imagem);
-            card.appendChild(conteudo);
-
+            card.append(imagem, conteudo);
             area.appendChild(card);
         });
 
+        if (mensagem) {
+            mensagem.textContent = "";
+            mensagem.className = "mensagem";
+        }
+
     } catch (erro) {
-        area.textContent = "Não foi possível carregar os produtos.";
+        console.error("Erro ao carregar produtos:", erro);
+
+        area.innerHTML = "";
+
+        if (mensagem) {
+            mensagem.textContent = erro.message;
+            mensagem.className = "mensagem erro";
+        }
+    }
+}
+
+
+// ==========================================
+// ADICIONAR AO CARRINHO
+// ==========================================
+
+document.addEventListener("click", async evento => {
+    const botao = evento.target.closest("[data-adicionar]");
+
+    if (!botao) return;
+
+    const idProduto = Number(botao.dataset.adicionar);
+
+    if (!idProduto) return;
+
+    const mensagem = document.querySelector("#mensagem-home");
+
+    botao.disabled = true;
+    botao.textContent = "Adicionando...";
+
+    try {
+        const resposta = await AstroShop.requisicaoAPI(
+            "/api/carrinho/itens",
+            {
+                method: "POST",
+                body: JSON.stringify({
+                    id_produto: idProduto,
+                    quantidade: 1
+                })
+            }
+        );
+
+        botao.textContent = "Adicionado!";
 
         if (mensagem) {
             mensagem.textContent =
-                "Verifique se o servidor backend está funcionando.";
+                resposta?.mensagem || "Produto adicionado ao carrinho!";
+            mensagem.className = "mensagem sucesso";
         }
 
-        console.error("Erro ao carregar produtos:", erro);
+    } catch (erro) {
+        console.error("Erro ao adicionar ao carrinho:", erro);
+
+        botao.textContent = "Tentar novamente";
+
+        if (mensagem) {
+            mensagem.textContent = erro.message;
+            mensagem.className = "mensagem erro";
+        }
+
+    } finally {
+        botao.disabled = false;
     }
-}
+});
